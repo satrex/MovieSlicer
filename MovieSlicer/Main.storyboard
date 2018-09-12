@@ -708,7 +708,7 @@
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="ClickedEndButton:" target="XfG-lQ-9wD" id="CAP-KY-bXT"/>
+                                    <action selector="EndButtonClicked:" target="XfG-lQ-9wD" id="QlI-eF-CnI"/>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="S5N-gt-UBL">
@@ -719,7 +719,7 @@
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="ClickedButton:" target="XfG-lQ-9wD" id="Fr2-Y3-2Vr"/>
+                                    <action selector="StartButtonClicked:" target="XfG-lQ-9wD" id="zhz-MS-IZ5"/>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="T8O-3B-Evb">
@@ -729,6 +729,9 @@
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="exportButtonClicked:" target="XfG-lQ-9wD" id="Cux-4k-K4a"/>
+                                </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="esT-O6-ZX6">
                                 <rect key="frame" x="476" y="49" width="113" height="32"/>
@@ -778,7 +781,11 @@
                         <outlet property="LocationSlider" destination="msk-OB-NC1" id="mgy-Mi-3Js"/>
                         <outlet property="MoviePlayer" destination="6q7-qe-eEK" id="sKe-fj-whx"/>
                         <outlet property="StartImage" destination="jC0-j6-UxV" id="bGL-Rc-TXI"/>
+                        <outlet property="endButton" destination="1GD-pG-ZpJ" id="aOx-Me-LgN"/>
                         <outlet property="endTimeLabel" destination="kH6-wG-E2N" id="OOG-Vj-JUd"/>
+                        <outlet property="exportButton" destination="T8O-3B-Evb" id="QRR-9f-cJR"/>
+                        <outlet property="invertButton" destination="esT-O6-ZX6" id="k2z-EX-90p"/>
+                        <outlet property="startButton" destination="S5N-gt-UBL" id="BqW-UA-q9e"/>
                         <outlet property="startTimeLabel" destination="XYu-1u-kLe" id="7Cs-4F-Khx"/>
                     </connections>
                 </viewController>

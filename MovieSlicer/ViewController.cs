@@ -3,6 +3,14 @@ using AppKit;
 using Foundation;
 using AVFoundation;
 using CoreMedia;
+using Xabe.FFmpeg;
+using System.IO;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using Xabe.FFmpeg.Enums;
+using Xabe.FFmpeg.Model;
+using System.Diagnostics;
 
 namespace MovieSlicer
 {
@@ -12,7 +20,35 @@ namespace MovieSlicer
         {
         }
 
+
         private NSUndoManager undoManager;
+
+        private async Task RunConversion(Queue<FileInfo> filesToConvert)
+        {
+            while (filesToConvert.Any())
+            {
+                FileInfo fileToConvert = filesToConvert.Dequeue();
+                //Save file to the same location with changed extension
+                string outputFileName = Path.ChangeExtension(fileToConvert.FullName, ".mp4");
+                await Conversion.ToMp4(fileToConvert.FullName, outputFileName).Start();
+                await Console.Out.WriteLineAsync($"Finished converion file [{fileToConvert.Name}]");
+            }
+        }
+
+        private async Task ConvertFile(string filePath){
+            FileInfo file = new FileInfo(filePath);
+            Trace.Assert(file.Exists, string.Format(@"ファイル{0}が存在しません。", filePath));
+
+            IMediaInfo inputFile = await MediaInfo.Get(file);
+            string outputPath = Path.ChangeExtension(Path.GetTempFileName(), FileExtensions.Mp4);
+            IConversionResult conversionResult = await Conversion.New()
+            .AddStream(inputFile.VideoStreams.First().SetCodec(VideoCodec.H264)
+            .ChangeSpeed(1.5))
+            .SetOutput(outputPath)
+            .Start();
+        }
+
+
 
         public override void ViewDidLoad()
         {
@@ -25,6 +61,46 @@ namespace MovieSlicer
             appDelegate.viewController = this;
 
             undoManager = new NSUndoManager();
+            SwitchButtonsEnabled();
+            SetExcutablePath();
+        }
+
+        private void SetExcutablePath() {
+            ProcessStartInfo psInfo = new ProcessStartInfo();
+            psInfo.FileName = @"/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"; // 実行するファイル
+            psInfo.Arguments = "which FFMpeg";
+            psInfo.CreateNoWindow = true; // コンソール・ウィンドウを開かない
+            
+            psInfo.UseShellExecute = false; // シェル機能を使用しない
+            psInfo.RedirectStandardOutput= true;
+
+            var p = Process.Start(psInfo);
+
+            p.EnableRaisingEvents = true;
+            p.OutputDataReceived += (sender, e) => FFmpeg.ExecutablesPath = e.Data;
+            p.BeginOutputReadLine();
+        }
+
+
+        private string _ffmpegPath;
+        private string FFMpegPath {
+            get {
+                if(_ffmpegPath == null){
+                    ProcessStartInfo psInfo = new ProcessStartInfo();
+                    psInfo.FileName = @"/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"; // 実行するファイル
+                    psInfo.Arguments = "which FFMpeg";
+                    psInfo.CreateNoWindow = true; // コンソール・ウィンドウを開かない
+
+                    psInfo.UseShellExecute = true; // シェル機能を使用しない
+                    var p = Process.Start(psInfo);
+                    p.OutputDataReceived += (sender, e) => _ffmpegPath = e.Data;
+                    p.BeginOutputReadLine();
+                }
+                return _ffmpegPath;
+            }
+            set {
+                _ffmpegPath = value;
+            }
         }
 
         partial void EndToStartClicked(NSObject sender)
@@ -67,6 +143,7 @@ namespace MovieSlicer
                 {
                     this.startTimeLabel.StringValue = TimeToString(_startTime);
                 }
+                SwitchButtonsEnabled();
             }
         }
 
@@ -91,9 +168,11 @@ namespace MovieSlicer
             {
                 this.endTimeLabel.StringValue = TimeToString(_endTime);
             }
+            SwitchButtonsEnabled();
             undoManager.RegisterUndo(this, (NSObject obj) => SetEndTime(currentEndTime));
         }
 
+        public string BaseFileName { get; set; }
         public void OpenFile()
         {
             NSOpenPanel openPanel = new NSOpenPanel();
@@ -118,8 +197,34 @@ namespace MovieSlicer
 
                 this.ClickedLabel.StringValue = openPanel.Url.AbsoluteString;
                 movieUrl = openPanel.Url;
+                this.BaseFileName = Path.GetFileNameWithoutExtension(movieUrl.ToString());
                 this.MoviePlayer.Player = new AVFoundation.AVPlayer(URL: openPanel.Url);
+                Console.WriteLine(movieUrl.FilePathUrl);
+                Console.WriteLine(movieUrl.AbsoluteString);
+
+                SwitchButtonsEnabled();
             });
+
+        }
+
+        private void SwitchButtonsEnabled(){
+            if(movieUrl == null){
+                this.endButton.Enabled = false;
+                this.startButton.Enabled = false;
+                this.invertButton.Enabled = false;
+            }
+            else{
+                this.endButton.Enabled = true;
+                this.startButton.Enabled = true;
+                this.invertButton.Enabled = true;
+            }
+
+            if(this.StartImage.Image == null || this.EndImage.Image == null){
+                this.exportButton.Enabled = false;
+            }
+            else{
+                this.exportButton.Enabled = true;
+            }
 
         }
 
@@ -158,7 +263,7 @@ namespace MovieSlicer
             return thumbnail;
         }
 
-        partial void ClickedEndButton(NSObject sender)
+        partial void EndButtonClicked(NSObject sender)
         {
             var time = this.MoviePlayer.Player.CurrentTime;
             string videoDurationText = TimeToString(time);
@@ -170,7 +275,7 @@ namespace MovieSlicer
             SetEndTime(time);
         }
 
-        partial void ClickedButton(NSObject sender)
+        partial void StartButtonClicked(NSObject sender)
         {
             var time = this.MoviePlayer.Player.CurrentTime;
             string videoDurationText = TimeToString(time);
@@ -194,6 +299,16 @@ namespace MovieSlicer
             return videoDurationText;
 
         }
+
+        partial void exportButtonClicked(NSObject sender)
+        {
+            string filePath = movieUrl.FilePathUrl.ToString().Remove(0,7);
+            Console.WriteLine(filePath);
+            this.ConvertFile(filePath).GetAwaiter().GetResult(); ;
+
+        }
+
+
 
     }
 }

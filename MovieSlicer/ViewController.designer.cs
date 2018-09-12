@@ -16,10 +16,19 @@ namespace MovieSlicer
 		AppKit.NSTextField ClickedLabel { get; set; }
 
 		[Outlet]
+		AppKit.NSButton endButton { get; set; }
+
+		[Outlet]
 		AppKit.NSImageView EndImage { get; set; }
 
 		[Outlet]
 		AppKit.NSTextField endTimeLabel { get; set; }
+
+		[Outlet]
+		AppKit.NSButton exportButton { get; set; }
+
+		[Outlet]
+		AppKit.NSButton invertButton { get; set; }
 
 		[Outlet]
 		AppKit.NSSliderTouchBarItem LocationSlider { get; set; }
@@ -28,28 +37,59 @@ namespace MovieSlicer
 		AVKit.AVPlayerView MoviePlayer { get; set; }
 
 		[Outlet]
+		AppKit.NSButton startButton { get; set; }
+
+		[Outlet]
 		AppKit.NSImageView StartImage { get; set; }
 
 		[Outlet]
 		AppKit.NSTextField startTimeLabel { get; set; }
 
-		[Action ("ClickedButton:")]
-		partial void ClickedButton (Foundation.NSObject sender);
-
-		[Action ("ClickedEndButton:")]
-		partial void ClickedEndButton (Foundation.NSObject sender);
+		[Action ("EndButtonClicked:")]
+		partial void EndButtonClicked (Foundation.NSObject sender);
 
 		[Action ("EndToStartClicked:")]
 		partial void EndToStartClicked (Foundation.NSObject sender);
 
+		[Action ("exportButtonClicked:")]
+		partial void exportButtonClicked (Foundation.NSObject sender);
+
 		[Action ("LocationSliderSlided:")]
 		partial void LocationSliderSlided (Foundation.NSObject sender);
+
+		[Action ("StartButtonClicked:")]
+		partial void StartButtonClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (startButton != null) {
+				startButton.Dispose ();
+				startButton = null;
+			}
+
+			if (endButton != null) {
+				endButton.Dispose ();
+				endButton = null;
+			}
+
+			if (invertButton != null) {
+				invertButton.Dispose ();
+				invertButton = null;
+			}
+
+			if (exportButton != null) {
+				exportButton.Dispose ();
+				exportButton = null;
+			}
+
 			if (ClickedLabel != null) {
 				ClickedLabel.Dispose ();
 				ClickedLabel = null;
+			}
+
+			if (EndImage != null) {
+				EndImage.Dispose ();
+				EndImage = null;
 			}
 
 			if (endTimeLabel != null) {
@@ -70,11 +110,6 @@ namespace MovieSlicer
 			if (StartImage != null) {
 				StartImage.Dispose ();
 				StartImage = null;
-			}
-
-			if (EndImage != null) {
-				EndImage.Dispose ();
-				EndImage = null;
 			}
 
 			if (startTimeLabel != null) {
