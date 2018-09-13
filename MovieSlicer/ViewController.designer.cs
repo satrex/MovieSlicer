@@ -37,6 +37,12 @@ namespace MovieSlicer
 		AVKit.AVPlayerView MoviePlayer { get; set; }
 
 		[Outlet]
+		AppKit.NSStepper speedStepper { get; set; }
+
+		[Outlet]
+		AppKit.NSTextField speedText { get; set; }
+
+		[Outlet]
 		AppKit.NSButton startButton { get; set; }
 
 		[Outlet]
@@ -57,34 +63,25 @@ namespace MovieSlicer
 		[Action ("LocationSliderSlided:")]
 		partial void LocationSliderSlided (Foundation.NSObject sender);
 
+		[Action ("SpeedChanged:")]
+		partial void SpeedChanged (AppKit.NSTextField sender);
+
+		[Action ("SpinValueChanged:")]
+		partial void SpinValueChanged (AppKit.NSStepper sender);
+
 		[Action ("StartButtonClicked:")]
 		partial void StartButtonClicked (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (startButton != null) {
-				startButton.Dispose ();
-				startButton = null;
+			if (ClickedLabel != null) {
+				ClickedLabel.Dispose ();
+				ClickedLabel = null;
 			}
 
 			if (endButton != null) {
 				endButton.Dispose ();
 				endButton = null;
-			}
-
-			if (invertButton != null) {
-				invertButton.Dispose ();
-				invertButton = null;
-			}
-
-			if (exportButton != null) {
-				exportButton.Dispose ();
-				exportButton = null;
-			}
-
-			if (ClickedLabel != null) {
-				ClickedLabel.Dispose ();
-				ClickedLabel = null;
 			}
 
 			if (EndImage != null) {
@@ -97,6 +94,16 @@ namespace MovieSlicer
 				endTimeLabel = null;
 			}
 
+			if (exportButton != null) {
+				exportButton.Dispose ();
+				exportButton = null;
+			}
+
+			if (invertButton != null) {
+				invertButton.Dispose ();
+				invertButton = null;
+			}
+
 			if (LocationSlider != null) {
 				LocationSlider.Dispose ();
 				LocationSlider = null;
@@ -107,6 +114,11 @@ namespace MovieSlicer
 				MoviePlayer = null;
 			}
 
+			if (startButton != null) {
+				startButton.Dispose ();
+				startButton = null;
+			}
+
 			if (StartImage != null) {
 				StartImage.Dispose ();
 				StartImage = null;
@@ -115,6 +127,16 @@ namespace MovieSlicer
 			if (startTimeLabel != null) {
 				startTimeLabel.Dispose ();
 				startTimeLabel = null;
+			}
+
+			if (speedText != null) {
+				speedText.Dispose ();
+				speedText = null;
+			}
+
+			if (speedStepper != null) {
+				speedStepper.Dispose ();
+				speedStepper = null;
 			}
 		}
 	}

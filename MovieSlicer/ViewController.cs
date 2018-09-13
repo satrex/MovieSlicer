@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using Xabe.FFmpeg.Enums;
+using Xabe.FFmpeg.Enums; 
 using Xabe.FFmpeg.Model;
 using System.Diagnostics;
 
@@ -22,18 +22,6 @@ namespace MovieSlicer
 
 
         private NSUndoManager undoManager;
-
-        private async Task RunConversion(Queue<FileInfo> filesToConvert)
-        {
-            while (filesToConvert.Any())
-            {
-                FileInfo fileToConvert = filesToConvert.Dequeue();
-                //Save file to the same location with changed extension
-                string outputFileName = Path.ChangeExtension(fileToConvert.FullName, ".mp4");
-                await Conversion.ToMp4(fileToConvert.FullName, outputFileName).Start();
-                await Console.Out.WriteLineAsync($"Finished converion file [{fileToConvert.Name}]");
-            }
-        }
 
         private async Task ConvertFile(string filePath){
             FileInfo file = new FileInfo(filePath);
@@ -62,7 +50,8 @@ namespace MovieSlicer
 
             undoManager = new NSUndoManager();
             SwitchButtonsEnabled();
-            SetExcutablePath();
+            this.speedText.StringValue = "1.0 x";
+            ffmpeg = new Satrex.FFMpeg.FFMpeg();
         }
 
         private void SetExcutablePath() {
@@ -81,28 +70,6 @@ namespace MovieSlicer
             p.BeginOutputReadLine();
         }
 
-
-        private string _ffmpegPath;
-        private string FFMpegPath {
-            get {
-                if(_ffmpegPath == null){
-                    ProcessStartInfo psInfo = new ProcessStartInfo();
-                    psInfo.FileName = @"/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"; // 実行するファイル
-                    psInfo.Arguments = "which FFMpeg";
-                    psInfo.CreateNoWindow = true; // コンソール・ウィンドウを開かない
-
-                    psInfo.UseShellExecute = true; // シェル機能を使用しない
-                    var p = Process.Start(psInfo);
-                    p.OutputDataReceived += (sender, e) => _ffmpegPath = e.Data;
-                    p.BeginOutputReadLine();
-                }
-                return _ffmpegPath;
-            }
-            set {
-                _ffmpegPath = value;
-            }
-        }
-
         partial void EndToStartClicked(NSObject sender)
         {
             var currentStartImage = this.StartImage.Image.Copy();
@@ -114,6 +81,7 @@ namespace MovieSlicer
             this._endTime = CoreMedia.CMTime.Invalid;
         }
 
+        private Satrex.FFMpeg.FFMpeg ffmpeg;
 
 
         public override NSObject RepresentedObject
@@ -168,9 +136,29 @@ namespace MovieSlicer
             {
                 this.endTimeLabel.StringValue = TimeToString(_endTime);
             }
+            this.ffmpeg.EndSecond = _endTime.Seconds;
             SwitchButtonsEnabled();
             undoManager.RegisterUndo(this, (NSObject obj) => SetEndTime(currentEndTime));
         }
+
+        public void SetStartTime(CMTime time)
+        {
+            var currentStartTime = _startTime;
+            _startTime = time;
+            if (time == CMTime.Invalid)
+            {
+                this.startTimeLabel.StringValue = string.Empty;
+            }
+            else
+            {
+                this.startTimeLabel.StringValue = TimeToString(_startTime);
+            }
+            this.ffmpeg.StartSecond = _startTime.Seconds;
+            SwitchButtonsEnabled();
+            undoManager.RegisterUndo(this, (NSObject obj) => SetStartTime(currentStartTime));
+        }
+
+
 
         public string BaseFileName { get; set; }
         public void OpenFile()
@@ -201,6 +189,8 @@ namespace MovieSlicer
                 this.MoviePlayer.Player = new AVFoundation.AVPlayer(URL: openPanel.Url);
                 Console.WriteLine(movieUrl.FilePathUrl);
                 Console.WriteLine(movieUrl.AbsoluteString);
+                string filePath = movieUrl.FilePathUrl.ToString().Remove(0, 7);
+                this.ffmpeg.InputFile = new FileInfo(filePath);
 
                 SwitchButtonsEnabled();
             });
@@ -282,10 +272,9 @@ namespace MovieSlicer
 
             var size = this.StartImage.FittingSize;
             var thumbnail = TakeScreenshot(time, size);
-
-            this._startTime = time;
-            this.startTimeLabel.StringValue = videoDurationText;
             this.StartImage.Image = thumbnail;
+
+            SetStartTime(time);
         }
 
         private string TimeToString(CoreMedia.CMTime time){
@@ -304,11 +293,28 @@ namespace MovieSlicer
         {
             string filePath = movieUrl.FilePathUrl.ToString().Remove(0,7);
             Console.WriteLine(filePath);
-            this.ConvertFile(filePath).GetAwaiter().GetResult(); ;
 
+            ffmpeg.Convert();
         }
 
+        partial void SpeedChanged(NSTextField sender)
+        {
+            try{
+                var number = double.Parse(sender.StringValue);
+                sender.DoubleValue = number;
+                sender.StringValue = string.Format("{0:F1} x", number);
+                this.speedStepper.DoubleValue = number;
+                }
+            catch(Exception){
+                sender.StringValue = "";
+            }
+        }
 
+        partial void SpinValueChanged(NSStepper sender)
+        {
+            var number = sender.DoubleValue;
+            this.speedText.StringValue = string.Format("{0:F1} x", number);
+        }
 
     }
 }

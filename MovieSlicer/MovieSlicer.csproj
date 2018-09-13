@@ -95,5 +95,11 @@
     <InterfaceDefinition Include="Main.storyboard" />
     <InterfaceDefinition Include="MainWindow.xib" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FFMpeg\Satrex.FFMpeg.csproj">
+      <Project>{6E5C80BE-D67A-4C39-85BB-277823A12E44}</Project>
+      <Name>Satrex.FFMpeg</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>
