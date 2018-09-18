@@ -60,6 +60,7 @@ namespace MovieSlicer
 
             this.EndImage.Image = null;
             this.EndTime = CoreMedia.CMTime.Invalid;
+            this.SwitchButtonsEnabled();
         }
 
         private Satrex.FFMpeg.FFMpeg ffmpeg;
@@ -109,7 +110,7 @@ namespace MovieSlicer
                 this.endTimeLabel.StringValue = TimeToString(_endTime);
                 this.ffmpeg.EndSecond = _endTime.Seconds;
             }
-            this.ClickedLabel.StringValue = ffmpeg.OutputPath;
+            this.ClickedLabel.StringValue = string.Format("OUTPUT:{0}", ffmpeg.OutputPath);
             SwitchButtonsEnabled();
             undoManager.RegisterUndo(this, (NSObject obj) => SetEndTime(currentEndTime));
         }
@@ -127,7 +128,7 @@ namespace MovieSlicer
                 this.startTimeLabel.StringValue = TimeToString(_startTime);
             }
             this.ffmpeg.StartSecond = _startTime.Seconds;
-            this.ClickedLabel.StringValue = ffmpeg.OutputPath;
+            this.ClickedLabel.StringValue = string.Format("OUTPUT:{0}", ffmpeg.OutputPath);
             SwitchButtonsEnabled();
             undoManager.RegisterUndo(this, (NSObject obj) => SetStartTime(currentStartTime));
         }
@@ -184,6 +185,7 @@ namespace MovieSlicer
                 this.endButton.Enabled = false;
                 this.startButton.Enabled = false;
                 this.invertButton.Enabled = false;
+                return;
             }
             else{
                 this.endButton.Enabled = true;
@@ -192,7 +194,18 @@ namespace MovieSlicer
             }
 
             if(this.StartImage.Image == null || this.EndImage.Image == null){
+                this.invertButton.Enabled = false;
                 this.exportButton.Enabled = false;
+                return;
+            }
+            else{
+                this.invertButton.Enabled = true;
+                this.exportButton.Enabled = true;
+            }
+
+            if(this._endTime < this._startTime ){
+                this.exportButton.Enabled = false;
+                return;
             }
             else{
                 this.exportButton.Enabled = true;
