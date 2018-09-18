@@ -114,6 +114,16 @@ namespace MovieSlicer
 				MoviePlayer = null;
 			}
 
+			if (speedStepper != null) {
+				speedStepper.Dispose ();
+				speedStepper = null;
+			}
+
+			if (speedText != null) {
+				speedText.Dispose ();
+				speedText = null;
+			}
+
 			if (startButton != null) {
 				startButton.Dispose ();
 				startButton = null;
@@ -127,16 +137,6 @@ namespace MovieSlicer
 			if (startTimeLabel != null) {
 				startTimeLabel.Dispose ();
 				startTimeLabel = null;
-			}
-
-			if (speedText != null) {
-				speedText.Dispose ();
-				speedText = null;
-			}
-
-			if (speedStepper != null) {
-				speedStepper.Dispose ();
-				speedStepper = null;
 			}
 		}
 	}

@@ -44,12 +44,6 @@ namespace Satrex.FFMpeg
             get { return EndSecond - StartSecond; }
         }
 
-        public string OutputFile
-        {
-            get;
-            private set;
-        }
-
         private double _speed = 1.0;
         public double Speed
         {
@@ -57,16 +51,33 @@ namespace Satrex.FFMpeg
             set { _speed = value; }
         }
 
+        public string OutputPath
+        {
+            get {
+                try{
+                    if (InputFile == null) return string.Empty;
+                    if (Duration < 0) return string.Empty;
+
+                    string baseName = Path.Combine(InputFile.Directory.FullName, Path.GetFileNameWithoutExtension(InputFile.FullName));
+                    string extention = Path.GetExtension(InputFile.Name);
+                    TimeSpan time = new TimeSpan(0, 0, (int)this.StartSecond);
+                    string speedString = Math.Abs(Speed - 1.0) < 0.01 ? string.Empty : Speed.ToString();
+
+                    string newFileName = string.Format("{0}{1}-{2}{3}{4}", baseName, time.ToString("%h%mss"), (int)Duration, speedString, extention);
+                    return newFileName;
+
+                }
+                catch(Exception){
+                    Trace.WriteLine("Exception raised on making output path.");
+                    return string.Empty;
+                }
+
+           }
+        }
+
         public void Convert(){
-
-            string baseName = Path.GetFileNameWithoutExtension(InputFile.FullName);
-            string extention = Path.GetExtension(InputFile.Name);
-            TimeSpan time = new TimeSpan(0, 0, (int)this.StartSecond);
-            string speedString = Math.Abs(Speed - 1.0) < 0.01 ? string.Empty : Speed.ToString();
-
-            string newFileName = string.Format("{0}{1}-{2}{3}.{4}", baseName , time.ToString("Hmss") , (int)Duration, speedString,  extention); 
-
-            Run(ExecutablePath, string.Format("-ss {1} -i {0} -t {2} {3}", InputFile.FullName, StartSecond, Duration, newFileName)); 
+           
+            Run(ExecutablePath, string.Format("-ss {1} -i {0} -t {2} {3}", InputFile.FullName, StartSecond, Duration, this.OutputPath)); 
         }
 
         private string Run(string fileName, string arguments){
